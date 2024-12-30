@@ -2,13 +2,34 @@
 <html>
     <head>
         <title>Simple Stock Price Consumer</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                background-color: black;
+                color: white;
+            }
+
+            .priceHistory {
+                height: 60vh;
+                overflow: scroll;
+                border: 0.5px solid white;
+            }
+
+            .trade-time {
+                color: green;
+            }
+
+            .trade-volume {
+                color: lightblue;
+            }
+        </style>
     </head>
     <body>
         <p id="price"></p>
-        <p id="dump"></p>
+        <ul class="priceHistory" id="priceHistory"></ul>
         <script>
             const socket = new WebSocket('wss://ws.finnhub.io?token={{FINNHUB_API_KEY}}');
-            let trades = [];
 
             socket.addEventListener('open', function (event) {
                 socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'AAPL'}))
@@ -18,9 +39,16 @@
                 const payload = JSON.parse(event.data);
                 switch (payload.type) {
                     case "trade":
-                        console.log("trade");
-                        console.log(payload.data[0].p);
-                        document.getElementById("price").textContent = `$${payload.data[0].p}`;
+                        payload.data.forEach((element) => {
+                            const newTradeEntry = document.createElement("li");
+                            const priceHistory = document.getElementById("priceHistory");
+                            priceHistory.insertBefore(newTradeEntry, priceHistory.firstChild);
+                            newTradeEntry.className = "trade";
+                            newTradeEntry.innerHTML = `<p><span class="trade-time">${new Date(element.t)}</span>: <span class="trade-price">$${element.p}</span>: <span class="trade-volume">${element.v}</span></p>`;
+                    });
+
+                        const lastTrade = payload.data[payload.data.length - 1];
+                        document.getElementById("price").textContent = `$${lastTrade.t}: ${lastTrade.p}: ${lastTrade.v}`;
                     case "ping":
                     default:
                         break;
