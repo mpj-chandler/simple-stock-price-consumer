@@ -4,11 +4,11 @@
         <title>Simple Stock Price Consumer</title>
     </head>
     <body>
+        <ul id="priceHistory"></ul>
         <p id="price"></p>
         <p id="dump"></p>
         <script>
             const socket = new WebSocket('wss://ws.finnhub.io?token={{FINNHUB_API_KEY}}');
-            let trades = [];
 
             socket.addEventListener('open', function (event) {
                 socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'AAPL'}))
@@ -18,8 +18,11 @@
                 const payload = JSON.parse(event.data);
                 switch (payload.type) {
                     case "trade":
-                        console.log("trade");
-                        console.log(payload.data[0].p);
+                        payload.data.forEach((element) => {
+                            const li = document.getElementById("priceHistory").appendChild(document.createElement("li"));
+                            li.textContent = `$${element.p}`;
+                    });
+
                         document.getElementById("price").textContent = `$${payload.data[0].p}`;
                     case "ping":
                     default:
