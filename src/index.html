@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Simple Stock Price Consumer</title>
+    </head>
+    <body>
+        <p id="price"></p>
+        <p id="dump"></p>
+        <script>
+            const socket = new WebSocket('wss://ws.finnhub.io?token=ctokdu1r01qhpppifa70ctokdu1r01qhpppifa7g');
+            let trades = [];
+
+            socket.addEventListener('open', function (event) {
+                socket.send(JSON.stringify({'type':'subscribe', 'symbol': 'AAPL'}))
+            });
+
+            socket.addEventListener("message", function (event) {
+                const payload = JSON.parse(event.data);
+                switch (payload.type) {
+                    case "trade":
+                        console.log("trade");
+                        console.log(payload.data[0].p);
+                        document.getElementById("price").textContent = `$${payload.data[0].p}`;
+                    case "ping":
+                    default:
+                        break;
+                }
+                
+            });
+
+            var unsubscribe = function(symbol) {
+                socket.send(JSON.stringify({'type':'unsubscribe','symbol': symbol}))
+            };
+        </script>
+    </body>
+</html>
